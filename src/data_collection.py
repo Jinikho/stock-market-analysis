@@ -11,8 +11,14 @@ def fetch_stock_data(symbol, start_date=None, end_date=None):
         end_date = pd.Timestamp.today().strftime("%Y-%m-%d")  # today's date as default if None is provided
 
     # Fetching data from Yahoo Finance
-    stock_data = yf.download(symbol, start=start_date, end=end_date)
-    return stock_data
+    try:
+        stock_data = yf.download(symbol, start=start_date, end=end_date)
+        if stock_data.empty:
+            raise ValueError(f"No data found for the ticker symbol '{symbol}'")
+        return stock_data
+    except Exception as e:
+        print(f"Error fetching stock data: {symbol}: {e}")
+        return None
 
 if __name__ == "__main__":
     # User enters stock symbol, start and end dates
@@ -22,6 +28,10 @@ if __name__ == "__main__":
     
     # Fetch the data and save to csv file
     df = fetch_stock_data(symbol, start_date, end_date)
-    print(df.head())
-    df.to_csv("data/stock_data.csv")
-    print("Data saved to data/stock_data.csv")
+    if df is None or df.empty:
+        print("No data found for the specified symbol. Please enter valid symbol.")
+    else:
+        print("Data fethced successfully!")
+        print(df.head())
+        df.to_csv("data/stock_data.csv")
+        print("Data saved to data/stock_data.csv")
